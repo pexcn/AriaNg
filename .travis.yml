@@ -22,6 +22,9 @@ script:
   - npm install
   - gulp clean build
 
+before_deploy:
+  - echo "aria.pexcn.me" > dist/CNAME
+
 deploy:
   provider: pages
   local-dir: dist
