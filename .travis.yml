@@ -1,0 +1,35 @@
+dist: xenial
+language: node_js
+node_js:
+  - "node"
+
+branches:
+  only: master
+
+notifications:
+  email: false
+
+env:
+  global:
+    - secure: "jw8XlKz4N7dM4ot+j8dh8SRJT6Nq/G2C3GPVG7Q1oUnhyrC/Q5oJXcUVoCmML4HsSK2+eR3z97dt+Syz0CF9O6RjhWJ1ESW1zUZRQTfM5Japedq5kM5wdCQe9Cbp01TXrDAcoUaqB7XuHet3tSL9xZehN6A9fS9bwYnRmrgbk5b02wtLvjazTwfv6Mojye43z9SE+Wk7RaYEacPS1KoDu1+SdYGVxo8XCJYBeGDxbRsTPrNm19JGJ2jKyd/3PoD+D2+MI+gg48Zc6kfFH5/orZCiWjc1QYrRHF+CvT/sVFeXM/572UZjOttJSdFhxbkYIaIzYzqR0ViHFoE8r9MJYeW9lT64yCoWzPwe7V91tNJs1nuGP24mCE3kQ9jW/zA9EZVURg13JbNUrKxrLshQwogjGccSkByC5YAcpYvG5KUNcn+1BZVvGVJR9d6KmBENH1QpAa8stji3oaVDsiOgB9owTfT+VrlWmz1NvyA7JkTwkk1IMO7adSRUM5tM8yXRy+t3mC3VKKdAFA8SDDuLRZVyYZNSRiwob5NwvP9zqzQEknpX2KdrH9uA6kyB5XuGpJPbdUrchErrUd1UvCcC3ig6H9mFtIXu9aeI2N26oOF+aS1AjPi8smF7s5i4KH/YXkSN2nJNqFUPoCjmvJypozRCLPlw+BDA2sXGZg1V2Zg="
+    - TZ: "Asia/Shanghai"
+
+before_script:
+  - npm install gulp-cli
+  - npm install natives
+
+script:
+  - npm install
+  - gulp clean build
+
+deploy:
+  provider: pages
+  local-dir: dist
+  target-branch: gh-pages
+  keep-history: true
+  skip-cleanup: true
+  github-token: ${GITHUB_TOKEN}
+  name: Travis CI
+  email: travis.ci.build@gmail.com
+  on:
+    branch: master
