@@ -18,7 +18,7 @@
     <link rel="icon" href="favicon.png">
     <!--[if IE]><link rel="shortcut icon" href="favicon.ico"><![endif]-->
     <link rel="apple-touch-icon" href="touchicon.png">
-    <!-- build:css css/bootstrap-3.3.7.min.css -->
+    <!-- build:css css/bootstrap-3.4.1.min.css -->
     <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css"/>
     <!-- endbuild -->
     <!-- build:css css/plugins.min.css -->
@@ -50,7 +50,7 @@
     <header class="main-header">
         <div class="logo">
             <div class="logo-mini">AriaNg</div>
-            <div class="logo-lg" title="AriaNg %%GULP_INJECT_VERSION%%">
+            <div class="logo-lg" title="AriaNg {{ariaNgVersion}}">
                 <div class="dropdown">
                     <span class="dropdown-toggle" data-toggle="dropdown">
                         <span class="logo-lg-title">AriaNg</span><i class="fa fa-caret-right fa-right-bottom fa-rotate-45 fa-half" aria-hidden="true"></i>
@@ -240,7 +240,7 @@
                 </li>
                 <li data-href-match="/status">
                     <a href="#!/status">
-                        <span class="label pull-right" ng-if="globalStatusContext.isEnabled" ng-class="{'label-primary': taskContext.rpcStatus === 'Connecting', 'label-success': taskContext.rpcStatus === 'Connected', 'label-danger': taskContext.rpcStatus === 'Disconnected'}" ng-bind="taskContext.rpcStatus | translate"></span>
+                        <span class="label pull-right" ng-if="globalStatusContext.isEnabled || isCurrentRpcUseWebSocket" ng-class="{'label-primary': taskContext.rpcStatus === 'Connecting', 'label-success': taskContext.rpcStatus === 'Connected', 'label-danger': taskContext.rpcStatus === 'Disconnected'}" ng-bind="taskContext.rpcStatus | translate"></span>
                         <i class="fa fa-server"></i> <span translate>Aria2 Status</span>
                     </a>
                 </li>
@@ -312,10 +312,10 @@
 <script src="../node_modules/angular-cookies/angular-cookies.min.js"></script>
 <script src="../node_modules/angular-animate/angular-animate.min.js"></script>
 <!-- endbuild -->
-<!-- build:js js/bootstrap-3.3.7.min.js -->
+<!-- build:js js/bootstrap-3.4.1.min.js -->
 <script src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
 <!-- endbuild -->
-<!-- build:js js/moment-with-locales-2.22.2.min.js -->
+<!-- build:js js/moment-with-locales-2.24.0.min.js -->
 <script src="../node_modules/moment/min/moment.min.js"></script>
 <script src="../node_modules/moment/locale/zh-cn.js"></script>
 <script src="../node_modules/moment/locale/zh-tw.js"></script>
@@ -351,6 +351,7 @@
 <script src="scripts/core/router.js"></script>
 <script src="scripts/core/root.js"></script>
 <script src="scripts/config/constants.js"></script>
+<script src="scripts/config/buildConfiguration.js"></script>
 <script src="scripts/config/configuration.js"></script>
 <script src="scripts/config/fileTypes.js"></script>
 <script src="scripts/config/initiator.js"></script>
@@ -388,6 +389,7 @@
 <script src="scripts/filters/taskOrderBy.js"></script>
 <script src="scripts/filters/taskStatus.js"></script>
 <script src="scripts/filters/volume.js"></script>
+<script src="scripts/services/ariaNgAssetsCacheService.js"></script>
 <script src="scripts/services/ariaNgLanguageLoader.js"></script>
 <script src="scripts/services/ariaNgCommonService.js"></script>
 <script src="scripts/services/ariaNgNotificationService.js"></script>
@@ -405,5 +407,6 @@
 <script src="scripts/services/aria2SettingService.js"></script>
 <script src="scripts/views/templates.js"></script>
 <!-- endbuild -->
+<!-- AriaNg-Bundle:languages -->
 </body>
 </html>

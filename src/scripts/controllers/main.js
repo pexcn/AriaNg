@@ -1,12 +1,15 @@
 (function () {
     'use strict';
 
-    angular.module('ariaNg').controller('MainController', ['$rootScope', '$scope', '$route', '$window', '$location', '$document', '$interval', 'clipboard', 'aria2RpcErrors', 'ariaNgCommonService', 'ariaNgNotificationService', 'ariaNgLocalizationService', 'ariaNgSettingService', 'ariaNgMonitorService', 'ariaNgTitleService', 'aria2TaskService', 'aria2SettingService', function ($rootScope, $scope, $route, $window, $location, $document, $interval, clipboard, aria2RpcErrors, ariaNgCommonService, ariaNgNotificationService, ariaNgLocalizationService, ariaNgSettingService, ariaNgMonitorService, ariaNgTitleService, aria2TaskService, aria2SettingService) {
+    angular.module('ariaNg').controller('MainController', ['$rootScope', '$scope', '$route', '$window', '$location', '$document', '$interval', 'clipboard', 'ariaNgBuildConfiguration', 'aria2RpcErrors', 'ariaNgCommonService', 'ariaNgNotificationService', 'ariaNgLocalizationService', 'ariaNgSettingService', 'ariaNgMonitorService', 'ariaNgTitleService', 'aria2TaskService', 'aria2SettingService', function ($rootScope, $scope, $route, $window, $location, $document, $interval, clipboard, ariaNgBuildConfiguration, aria2RpcErrors, ariaNgCommonService, ariaNgNotificationService, ariaNgLocalizationService, ariaNgSettingService, ariaNgMonitorService, ariaNgTitleService, aria2TaskService, aria2SettingService) {
         var pageTitleRefreshPromise = null;
         var globalStatRefreshPromise = null;
 
         var refreshPageTitle = function () {
-            $document[0].title = ariaNgTitleService.getFinalTitleByGlobalStat($scope.globalStat);
+            $document[0].title = ariaNgTitleService.getFinalTitleByGlobalStat({
+                globalStat: $scope.globalStat,
+                currentRpcProfile: getCurrentRPCProfile()
+            });
         };
 
         var refreshGlobalStat = function (silent, callback) {
@@ -27,9 +30,26 @@
             }, silent);
         };
 
+        var getCurrentRPCProfile = function () {
+            if (!$scope.rpcSettings || $scope.rpcSettings.length < 1) {
+                return null;
+            }
+
+            for (var i = 0; i < $scope.rpcSettings.length; i++) {
+                var rpcSetting = $scope.rpcSettings[i];
+                if (rpcSetting.isDefault) {
+                    return rpcSetting;
+                }
+            }
+
+            return null;
+        };
+
         if (ariaNgSettingService.getBrowserNotification()) {
             ariaNgNotificationService.requestBrowserPermission();
         }
+
+        $scope.ariaNgVersion = ariaNgBuildConfiguration.buildVersion;
 
         $scope.globalStatusContext = {
             isEnabled: ariaNgSettingService.getGlobalStatRefreshInterval() > 0,
@@ -43,19 +63,30 @@
         $scope.quickSettingContext = null;
 
         $scope.rpcSettings = ariaNgSettingService.getAllRpcSettings();
+        $scope.isCurrentRpcUseWebSocket = ariaNgSettingService.isCurrentRpcUseWebSocket();
 
         $scope.isTaskSelected = function () {
             return $rootScope.taskContext.getSelectedTaskIds().length > 0;
         };
 
         $scope.isSingleUrlTaskSelected = function () {
-            var selectedTask = $rootScope.taskContext.getSelectedTasks();
+            var selectedTasks = $rootScope.taskContext.getSelectedTasks();
 
-            if (selectedTask.length !== 1) {
+            if (selectedTasks.length !== 1) {
                 return false;
             }
 
-            return !!selectedTask[0].singleUrl;
+            return !!selectedTasks[0].singleUrl;
+        };
+
+        $scope.isSingleBittorrentHasInfoHashTaskSelected = function () {
+            var selectedTasks = $rootScope.taskContext.getSelectedTasks();
+
+            if (selectedTasks.length !== 1) {
+                return false;
+            }
+
+            return !!selectedTasks[0].bittorrent && !!selectedTasks[0].infoHash;
         };
 
         $scope.isSpecifiedTaskSelected = function () {
@@ -167,8 +198,12 @@
             });
         };
 
-        $scope.isTaskRetryable = function (task) {
-            return task && task.status === 'error' && task.errorDescription && !task.bittorrent;
+        $scope.hasRetryableTask = function () {
+            return $rootScope.taskContext.hasRetryableTask();
+        };
+
+        $scope.hasCompletedTask = function () {
+            return $rootScope.taskContext.hasCompletedTask();
         };
 
         $scope.isSelectedTaskRetryable = function () {
@@ -179,7 +214,7 @@
             }
 
             for (var i = 0; i < selectedTasks.length; i++) {
-                if (!$scope.isTaskRetryable(selectedTasks[i])) {
+                if (!$rootScope.isTaskRetryable(selectedTasks[i])) {
                     return false;
                 }
             }
@@ -200,7 +235,7 @@
             var skipCount = 0;
 
             for (var i = 0; i < tasks.length; i++) {
-                if ($scope.isTaskRetryable(tasks[i])) {
+                if ($rootScope.isTaskRetryable(tasks[i])) {
                     retryableTasks.push(tasks[i]);
                 } else {
                     skipCount++;
@@ -292,11 +327,27 @@
             $rootScope.taskContext.selectAll();
         };
 
-        $scope.copySelectedOneTaskDownloadLink = function () {
-            var selectedTask = $rootScope.taskContext.getSelectedTasks();
+        $scope.selectAllFailedTasks = function () {
+            $rootScope.taskContext.selectAllFailed();
+        };
 
-            if (selectedTask.length === 1) {
-                clipboard.copyText(selectedTask[0].singleUrl);
+        $scope.selectAllCompletedTasks = function () {
+            $rootScope.taskContext.selectAllCompleted();
+        };
+
+        $scope.copySelectedOneTaskDownloadLink = function () {
+            var selectedTasks = $rootScope.taskContext.getSelectedTasks();
+
+            if (selectedTasks.length === 1) {
+                clipboard.copyText(selectedTasks[0].singleUrl);
+            }
+        };
+
+        $scope.copySelectedOneTaskMagnetLink = function () {
+            var selectedTasks = $rootScope.taskContext.getSelectedTasks();
+
+            if (selectedTasks.length === 1) {
+                clipboard.copyText('magnet:?xt=urn:btih:' + selectedTasks[0].infoHash);
             }
         };
 

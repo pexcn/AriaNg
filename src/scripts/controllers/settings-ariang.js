@@ -1,12 +1,30 @@
 (function () {
     'use strict';
 
-    angular.module('ariaNg').controller('AriaNgSettingsController', ['$rootScope', '$scope', '$routeParams', '$window', '$interval', '$timeout', '$filter', 'clipboard', 'ariaNgLanguages', 'ariaNgCommonService', 'ariaNgNotificationService', 'ariaNgLocalizationService', 'ariaNgLogService', 'ariaNgFileService', 'ariaNgSettingService', 'ariaNgMonitorService', 'ariaNgTitleService', 'aria2SettingService', function ($rootScope, $scope, $routeParams, $window, $interval, $timeout, $filter, clipboard, ariaNgLanguages, ariaNgCommonService, ariaNgNotificationService, ariaNgLocalizationService, ariaNgLogService, ariaNgFileService, ariaNgSettingService, ariaNgMonitorService, ariaNgTitleService, aria2SettingService) {
+    angular.module('ariaNg').controller('AriaNgSettingsController', ['$rootScope', '$scope', '$routeParams', '$window', '$interval', '$timeout', '$filter', 'clipboard', 'ariaNgBuildConfiguration', 'ariaNgLanguages', 'ariaNgCommonService', 'ariaNgNotificationService', 'ariaNgLocalizationService', 'ariaNgLogService', 'ariaNgFileService', 'ariaNgSettingService', 'ariaNgMonitorService', 'ariaNgTitleService', 'aria2SettingService', function ($rootScope, $scope, $routeParams, $window, $interval, $timeout, $filter, clipboard, ariaNgBuildConfiguration, ariaNgLanguages, ariaNgCommonService, ariaNgNotificationService, ariaNgLocalizationService, ariaNgLogService, ariaNgFileService, ariaNgSettingService, ariaNgMonitorService, ariaNgTitleService, aria2SettingService) {
         var extendType = $routeParams.extendType;
         var lastRefreshPageNotification = null;
 
         var getFinalTitle = function () {
-            return ariaNgTitleService.getFinalTitleByGlobalStat(ariaNgMonitorService.getCurrentGlobalStat());
+            return ariaNgTitleService.getFinalTitleByGlobalStat({
+                globalStat: ariaNgMonitorService.getCurrentGlobalStat(),
+                currentRpcProfile: getCurrentRPCProfile()
+            });
+        };
+
+        var getCurrentRPCProfile = function () {
+            if (!$scope.context || !$scope.context.rpcSettings || $scope.context.rpcSettings.length < 1) {
+                return null;
+            }
+
+            for (var i = 0; i < $scope.context.rpcSettings.length; i++) {
+                var rpcSetting = $scope.context.rpcSettings[i];
+                if (rpcSetting.isDefault) {
+                    return rpcSetting;
+                }
+            }
+
+            return null;
         };
 
         var setNeedRefreshPage = function () {
@@ -33,6 +51,8 @@
 
         $scope.context = {
             currentTab: 'global',
+            ariaNgVersion: ariaNgBuildConfiguration.buildVersion,
+            buildCommit: ariaNgBuildConfiguration.buildCommit,
             languages: ariaNgLanguages,
             titlePreview: getFinalTitle(),
             availableTime: ariaNgCommonService.getTimeOptions([1000, 2000, 3000, 5000, 10000, 30000, 60000], true),
@@ -48,6 +68,7 @@
             exportSettingsCopied: false
         };
 
+        $scope.context.titlePreview = getFinalTitle();
         $scope.context.showDebugMode = $scope.context.sessionSettings.debugMode || extendType === 'debug';
 
         $scope.changeGlobalTab = function () {
@@ -188,6 +209,7 @@
 
         $scope.openAriaNgConfigFile = function () {
             ariaNgFileService.openFileContent({
+                scope: $scope,
                 fileFilter: '.json',
                 fileType: 'text'
             }, function (result) {
@@ -234,7 +256,9 @@
         });
 
         $scope.copyExportSettings = function () {
-            clipboard.copyText($scope.context.exportSettings);
+            clipboard.copyText($scope.context.exportSettings, {
+                container: angular.element('#export-settings-modal')[0]
+            });
             $scope.context.exportSettingsCopied = true;
         };
 
